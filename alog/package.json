@@ -1,0 +1,14 @@
+{
+  "name": "alog",
+  "version": "1.0.0",
+  "description": "Tail balena application logs simultaneously",
+  "main": "bin/index.js",
+  "scripts": {
+    "test": "echo \"Error, no test specified\" && exit 1"
+  },
+  "author": "Hugh Brown <hugh@balena.io>",
+  "license": "MIT",
+  "dependencies": {
+    "balena-sdk": "^14.0.1"
+  }
+}
