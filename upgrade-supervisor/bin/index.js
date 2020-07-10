@@ -49,17 +49,10 @@ async function listSupervisorReleases(deviceType) {
     });
 }
 
-async function setSupervisorRelease(id) {
-  // # Set supervisor version
-  // PATCH :my-url/v5/device?$filter=uuid%20eq%20':my-uuid'
-  // :my-auth
-
-  // {"should_be_managed_by__supervisor_release": "6175"}
-
-  console.log(id);
+async function setSupervisorRelease(id, deviceUUID) {
   // For doc on this, see github.com/balena-io/balena-sdk/typings/balena-request.d.ts
   await balena.request.send({
-    url: `https://api.balena-staging.com/v5/device?filter=uuid%20eq%20'${myDevice}'`,
+    url: `${balenaUrl}v5/device?filter=uuid%20eq%20'${deviceUUID}'`,
     method: "PATCH",
     // Doesn't work: "`${id}` -- Request error: Expected an ID for the supervisor_release
     body: {"should_be_managed_by__supervisor_release": `${id}`}
