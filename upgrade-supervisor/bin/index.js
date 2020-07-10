@@ -31,9 +31,9 @@ balena.auth.loginWithToken(personalToken, function(error) {
 balena.auth.whoami()
   .then(username => {
     if(username) {
-      console.log("I am", username);
+      console.log("[DEBUG] I am", username);
     } else {
-      console.log("I am nobody? I guess?")
+      console.log("[DEBUG] I am nobody? I guess?")
     }
   });
 
