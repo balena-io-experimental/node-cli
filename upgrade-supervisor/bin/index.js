@@ -93,7 +93,7 @@ getDeviceByUUID(options.u)
   })
   .then(release => {
     console.log("[DEBUG] Release: ", release);
-    // setSupervisorRelease(release.id, options.u);
+    setSupervisorRelease(release.id, options.u);
   })
 
 // subscribeToLogs(myApplication)
