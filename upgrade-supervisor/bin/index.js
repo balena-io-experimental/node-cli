@@ -3,9 +3,11 @@
 const fs = require('fs');
 const yargs = require('yargs');
 
+const balenaUrl = "https://api.balena-staging.com/";
+const balenaToken = "/home/hugh/.balena/token.staging";
 const getSdk = require('balena-sdk');
 const balena = getSdk({
-  apiUrl: "https://api.balena-staging.com/"
+  apiUrl: balenaUrl
 });
 
 const options = yargs
@@ -20,7 +22,7 @@ const options = yargs
 		    demandOption: true})
       .argv;
 
-var personalToken = fs.readFileSync('/home/hugh/.balena/token.staging', 'utf8');
+var personalToken = fs.readFileSync(balenaToken, 'utf8');
 
 balena.auth.loginWithToken(personalToken, function(error) {
   if (error) throw error;
