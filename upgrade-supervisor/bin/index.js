@@ -37,14 +37,15 @@ balena.auth.whoami()
     }
   });
 
-
-// FIXME: Actually, we just grab a hardcoded version
-async function listSupervisorReleases() {
-  return await balena.request.send({url: "https://api.balena-staging.com/v5/supervisor_release?$filter=device_type%20eq%20'intel-nuc'"})
-    .then( data => {
-      // note implicit assumption that there will be one-and-only-one result
-      var result = data.body.d.filter(function (release) { return release.supervisor_version === "v10.8.0"; });
-      return result[0];
+async function listSupervisorReleases(deviceType) {
+  reqUrl = `${balenaUrl}v5/supervisor_release?$filter=device_type%20eq%20'${deviceType}'`;
+  console.log("[DEBUG] Looking for ", reqUrl);
+  return await balena.request.send({url: reqUrl})
+    .then(data => {
+      // FIXME: implicit assumption that highest id === highest semantic version
+      var results = data.body.d;
+      var highest = results.sort((a, b) => a.id - b.id)[results.length - 1]
+      return highest;
     });
 }
 
