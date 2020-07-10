@@ -74,22 +74,27 @@ async function setSupervisorRelease(id) {
 	  });
 };
 
-balena.models.device.getSupportedDeviceTypes().then(function(supportedDeviceTypes) {
-    supportedDeviceTypes.forEach(function(supportedDeviceType) {
-        console.log('Balena supports:', supportedDeviceType);
+async function getDeviceByUUID(deviceUUID) {
+  reqUrl = `${balenaUrl}v5/device?$filter=uuid%20eq%20'${deviceUUID}'`;
+  console.log("[DEBUG] Looking for ", reqUrl);
+  return await balena.request.send({url: reqUrl})
+    .then(data => {
+      return data.body;
     });
-});
+}
 
-balena.models.device.get(myDevice)
+getDeviceByUUID(options.u)
   .then(device => {
-    console.log(device);
-})
-
-listSupervisorReleases()
+    console.log("[DEBUG] Device from API: ", device);
+    return device;
+  })
+  .then(device => {
+    return listSupervisorReleases(device.d[0].device_type)
+  })
   .then(release => {
-    console.log(release);
-    setSupervisorRelease(release.id);
-  });
+    console.log("[DEBUG] Release: ", release);
+    // setSupervisorRelease(release.id, options.u);
+  })
 
 // subscribeToLogs(myApplication)
 //   .then(logs => {
