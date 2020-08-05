@@ -7,7 +7,7 @@ const yargs = require('yargs');
 // IOW, it's `${balenaUrl}v5/...`, not `${balenaUrl}/v5/...`
 const balenaUrl = "https://api.balena-staging.com/";
 const balenaToken = "/home/hugh/.balena/token.staging";
-const getSdk = require('balena-sdk');
+const { getSdk } = require('balena-sdk');
 const balena = getSdk({
   apiUrl: balenaUrl
 });
