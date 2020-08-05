@@ -76,11 +76,9 @@ async function setSupervisorRelease(id, deviceUUID) {
 }
 
 async function getDeviceByUUID(deviceUUID) {
-  reqUrl = `${balenaUrl}v5/device?$filter=uuid%20eq%20'${deviceUUID}'`;
-  console.log("[DEBUG] Looking for ", reqUrl);
-  return await balena.request.send({url: reqUrl})
-    .then(data => {
-      return data.body;
+  return await balena.models.device.get(deviceUUID)
+    .then(device => {
+      return device;
     });
 }
 
