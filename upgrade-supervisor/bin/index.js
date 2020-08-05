@@ -54,6 +54,16 @@ async function setSupervisorRelease(id, deviceUUID) {
     method: "PATCH",
     // Doesn't work: "`${id}` -- Request error: Expected an ID for the supervisor_release
     body: {"should_be_managed_by__supervisor_release": `${id}`}
+  console.log("[DEBUG] Setting device ", deviceUUID, " to be managed by supervisor ID ", id);
+  balena.model.device.setSupervisorRelease(deviceUUID, id)
+    .then(result => {
+      console.log("Worked! ", result);
+    })
+    .catch(error => {
+      console.log("Error: ", error);
+    })
+}
+
 
   }).then(resp => {
     console.log(resp);
