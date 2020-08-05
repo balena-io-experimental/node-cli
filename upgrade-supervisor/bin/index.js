@@ -18,10 +18,6 @@ const options = yargs
 		    describe: "UUID of device",
 		    type: "string",
 		    demandOption: true})
-      .option("a", {alias: "application",
-		    describe: "Application name",
-		    type: "string",
-		    demandOption: true})
       .argv;
 
 var personalToken = fs.readFileSync(balenaToken, 'utf8');
@@ -90,11 +86,3 @@ getDeviceByUUID(options.u)
     console.log("[DEBUG] Release: ", release);
     setSupervisorRelease(release.id, options.u);
   })
-
-// subscribeToLogs(myApplication)
-//   .then(logs => {
-//     getDeviceServicesIds(myDevice).then(data => allServiceIds = data);
-//     logs.on('line', function(line){
-//       logutil.dispatch(line, allServiceIds);
-//     })
-//   });
