@@ -11,11 +11,19 @@ const balena = getSdk({
 });
 
 const options = yargs
-      .usage("Usage: -u [uuid of device] -a [application]")
-      .option("u", {alias: "uuid",
-		    describe: "UUID of device",
-		    type: "string",
-		    demandOption: true})
+      .usage('Usage: $0 <command> <options>')
+      .command({
+	command: 'upgrade [uuid]',
+	desc: 'Upgrade supervisor on a device',
+	handler: (argv) => {
+	  console.log(`Hello world, from device ${argv.uuid}!`)
+	}
+      })
+      // .command('list-supervisor-versions', 'List supervisor versions available')
+      // .option("u", {alias: "uuid",
+      // 		    describe: "UUID of device",
+      // 		    type: "string",
+      // 		    demandOption: true})
       .argv;
 
 var personalToken = fs.readFileSync(balenaToken, 'utf8');
