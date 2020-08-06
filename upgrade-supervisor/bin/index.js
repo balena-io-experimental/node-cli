@@ -40,7 +40,8 @@ const options = yargs
       }, argv => {
 	argv._handled = true;
 	console.log('Preparing to list supervisor versions');
-	listSupervisorReleases(argv.devicetype, argv.uuid);
+	listSupervisorReleases(argv.devicetype, argv.uuid)
+	  .then(release => { console.log(release)});
       })
       .demandCommand(1, 'Please specify a command to run')
       .help()
