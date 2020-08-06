@@ -118,7 +118,8 @@ async function getDeviceTypeFromUUID(deviceUUID) {
     }
   })
     .then(device => {
-      return device;
+      slug = device.is_of__device_type[0].slug;
+      return slug;
     });
 }
 
