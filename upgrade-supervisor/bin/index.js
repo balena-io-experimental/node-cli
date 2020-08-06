@@ -66,7 +66,7 @@ async function setSupervisorRelease(id, deviceUUID) {
   // - why the device is undefined here.
 
   // This happens whether I use an API token or a Session token.
-  await balena.model.device.setSupervisorRelease(deviceUUID, id)
+  await balena.models.device.setSupervisorRelease(deviceUUID, id)
     .then(result => {
       console.log("Worked! ", result);
     })
