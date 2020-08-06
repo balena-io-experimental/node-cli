@@ -10,28 +10,51 @@ const balena = getSdk({
   apiUrl: balenaUrl
 });
 
+// See https://github.com/yargs/yargs/issues/745#issuecomment-269879831
 const options = yargs
-      .usage("Usage: -u [uuid of device] -a [application]")
-      .option("u", {alias: "uuid",
-		    describe: "UUID of device",
-		    type: "string",
-		    demandOption: true})
+      .usage('Usage: $0 <command> <options>')
+      .command('upgrade', 'Upgrade supervisor on device to specified version', yargs => {
+	yargs
+	  .option('uuid', {
+	    desc: 'uuid for the device',
+	    demand: 'Please specify a uuid for the device'
+	  })
+	  .option('supervisor', {
+	    desc: 'supervisor version to upgrade to',
+	    demand: 'Please specify a supervisor version'
+	  })
+	  .demandOption(['uuid', 'supervisor'], 'Please provide both uuid and version arguments')
+      }, argv => {
+	argv._handled = true;
+	console.log(`Preparing to upgrade device ${argv.uuid} to supervisor version ${argv.supervisor}`);
+	upgradeSupervisor(argv.uuid, argv.supervisor);
+      })
+      // .command('list-supervisor-versions', 'List supervisor versions available')
+      // .option("u", {alias: "uuid",
+      // 		    describe: "UUID of device",
+      // 		    type: "string",
+      // 		    demandOption: true})
+      .demandCommand(1, 'Please specify a command to run')
+      .help()
       .argv;
 
-var personalToken = fs.readFileSync(balenaToken, 'utf8');
 
-balena.auth.loginWithToken(personalToken, function(error) {
-  if (error) throw error;
-})
+async function initializeBalenaAuth() {
+  var personalToken = fs.readFileSync(balenaToken, 'utf8');
 
-balena.auth.whoami()
-  .then(username => {
-    if(username) {
-      console.log("[DEBUG] I am", username);
-    } else {
-      console.log("[DEBUG] I am nobody? I guess?")
-    }
-  });
+  balena.auth.loginWithToken(personalToken, function(error) {
+    if (error) throw error;
+  })
+
+  balena.auth.whoami()
+    .then(username => {
+      if(username) {
+	console.log("[DEBUG] I am", username);
+      } else {
+	console.log("[DEBUG] I am nobody? I guess?")
+      }
+    });
+}
 
 async function listSupervisorReleases(deviceType) {
   // Doubled slashes *will not work*.  IOW, it's `${balenaUrl}v5/...`,
@@ -49,23 +72,14 @@ async function listSupervisorReleases(deviceType) {
 
 async function setSupervisorRelease(id, deviceUUID) {
   console.log("[DEBUG] Setting device", deviceUUID, "to be managed by supervisor ID", id);
-  // FIXME:  I don't understand what I'm doing wrong here.  The output I get is:
+  // Originally, I had the SDK call wrong and was getting this error:
 
-  // [DEBUG] Setting device e492d594537faf2432872295cc3190ef to be managed by supervisor ID 7334
-  // (node:33536) UnhandledPromiseRejectionWarning: TypeError: Cannot read property 'device' of undefined
-  //     at setSupervisorRelease (/home/hugh/dev/github.com/balena-io-playground/node-cli/upgrade-supervisor/bin/index.js:52:22)
-  //     at /home/hugh/dev/github.com/balena-io-playground/node-cli/upgrade-supervisor/bin/index.js:91:5
-  //     at processTicksAndRejections (internal/process/task_queues.js:97:5)
   // (node:33536) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). To terminate the node process on unhandled promise rejection, use the CLI flag `--unhandled-rejections=strict` (see https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). (rejection id: 1)
   // (node:33536) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
 
-  // I don't understand why:
+  // xginn8 has pointed out that I'm mixing up my try/catch methods,
+  // so I need to get that sorted out.
 
-  // - the .catch block is not catching the error;
-
-  // - why the device is undefined here.
-
-  // This happens whether I use an API token or a Session token.
   await balena.models.device.setSupervisorRelease(deviceUUID, id)
     .then(result => {
       console.log("Worked! ", result);
@@ -76,37 +90,40 @@ async function setSupervisorRelease(id, deviceUUID) {
 }
 
 async function getDeviceByUUID(deviceUUID) {
+  console.log(`[DEBUG] Searching for device ${deviceUUID}`)
   return await balena.models.device.get(deviceUUID)
     .then(device => {
       return device;
     });
 }
 
-getDeviceByUUID(options.u)
-  .then(device => {
-    console.log("[DEBUG] Device from API: ", device);
-    return device;
-  })
-  .then(device => {
-    // FIXME: I don't understand what's going on here.  First off, I
-    // (probably naively) expect `device` in this context to be the
-    // same as the API device resource
-    // (https://www.balena.io/docs/reference/api/resources/device/).
-    // That API resource has "device_type" as a member of "device."
+async function upgradeSupervisor(uuid, supervisor) {
+  getDeviceByUUID(uuid)
+    .then(device => {
+      console.log("[DEBUG] Device from API: ", device);
+      return device;
+    })
+    .then(device => {
+      // FIXME: I don't understand what's going on here.  First off, I
+      // (probably naively) expect `device` in this context to be the
+      // same as the API device resource
+      // (https://www.balena.io/docs/reference/api/resources/device/).
+      // That API resource has "device_type" as a member of "device."
 
-    // But with the SDK, instead of `device.device_type` I get:
+      // But with the SDK, instead of `device.device_type` I get:
 
-    // is_of__device_type: { __deferred: { uri:/ '/resin/device_type(@id)?@id=77' }, __id: 77 },
+      // is_of__device_type: { __deferred: { uri:/ '/resin/device_type(@id)?@id=77' }, __id: 77 },
 
-    // Second, I'm not sure what to do with __deferred here.  It looks
-    // like something I should resolve, but how?  Am I meant to use
-    // the URI to construct a bare API call?
+      // Second, I'm not sure what to do with __deferred here.  It looks
+      // like something I should resolve, but how?  Am I meant to use
+      // the URI to construct a bare API call?
 
-    // For now, I'm cheating and just setting the device type manually
-    // to match my particular device.
-    return listSupervisorReleases("raspberrypi4-64")
-  })
-  .then(release => {
-    console.log("[DEBUG] Release: ", release);
-    setSupervisorRelease(release.id, options.u);
-  })
+      // For now, I'm cheating and just setting the device type manually
+      // to match my particular device.
+      return listSupervisorReleases("raspberrypi4-64")
+    })
+    .then(release => {
+      console.log("[DEBUG] Release: ", release);
+      setSupervisorRelease(release.supervisor_version, uuid);
+    })
+}
