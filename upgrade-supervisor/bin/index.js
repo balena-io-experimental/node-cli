@@ -46,15 +46,14 @@ const options = yargs
       .help()
       .argv;
 
-
 async function initializeBalenaAuth() {
   var personalToken = fs.readFileSync(balenaToken, 'utf8');
 
-  balena.auth.loginWithToken(personalToken, function(error) {
+  await balena.auth.loginWithToken(personalToken, function(error) {
     if (error) throw error;
   })
 
-  balena.auth.whoami()
+  await balena.auth.whoami()
     .then(username => {
       if(username) {
 	console.log("[DEBUG] I am", username);
@@ -117,7 +116,7 @@ async function getDeviceByUUID(deviceUUID) {
 }
 
 async function upgradeSupervisor(uuid, supervisor) {
-  getDeviceByUUID(uuid)
+  await initializeBalenaAuth();
     .then(device => {
       console.log("[DEBUG] Device from API: ", device);
       return device;
