@@ -107,38 +107,31 @@ async function setSupervisorRelease(id, deviceUUID) {
     })
 }
 
-async function getDeviceByUUID(deviceUUID) {
+async function getDeviceTypeFromUUID(deviceUUID) {
   console.log(`[DEBUG] Searching for device ${deviceUUID}`)
-  return await balena.models.device.get(deviceUUID)
+
+  return await balena.models.device.get(deviceUUID, {
+    $expand: {
+      is_of__device_type: {
+  	$select: ['slug']
+      }
+    }
+  })
     .then(device => {
-      return device;
+      slug = device.is_of__device_type[0].slug;
+      return slug;
     });
 }
 
 async function upgradeSupervisor(uuid, supervisor) {
   await initializeBalenaAuth();
-    .then(device => {
-      console.log("[DEBUG] Device from API: ", device);
-      return device;
+  getDeviceTypeFromUUID(uuid)
+    .then(deviceType => {
+      console.log("[DEBUG] Device from API: ", deviceType);
+      return deviceType;
     })
-    .then(device => {
-      // FIXME: I don't understand what's going on here.  First off, I
-      // (probably naively) expect `device` in this context to be the
-      // same as the API device resource
-      // (https://www.balena.io/docs/reference/api/resources/device/).
-      // That API resource has "device_type" as a member of "device."
-
-      // But with the SDK, instead of `device.device_type` I get:
-
-      // is_of__device_type: { __deferred: { uri:/ '/resin/device_type(@id)?@id=77' }, __id: 77 },
-
-      // Second, I'm not sure what to do with __deferred here.  It looks
-      // like something I should resolve, but how?  Am I meant to use
-      // the URI to construct a bare API call?
-
-      // For now, I'm cheating and just setting the device type manually
-      // to match my particular device.
-      return listSupervisorReleases("raspberrypi4-64")
+    .then(deviceType => {
+      return listSupervisorReleases(deviceType);
     })
     .then(release => {
       console.log("[DEBUG] Release: ", release);
