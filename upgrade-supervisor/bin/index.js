@@ -126,28 +126,12 @@ async function getDeviceTypeFromUUID(deviceUUID) {
 async function upgradeSupervisor(uuid, supervisor) {
   await initializeBalenaAuth();
   getDeviceTypeFromUUID(uuid)
-    .then(device => {
-      console.log("[DEBUG] Device from API: ", device);
-      return device;
+    .then(deviceType => {
+      console.log("[DEBUG] Device from API: ", deviceType);
+      return deviceType;
     })
-    .then(device => {
-      // FIXME: I don't understand what's going on here.  First off, I
-      // (probably naively) expect `device` in this context to be the
-      // same as the API device resource
-      // (https://www.balena.io/docs/reference/api/resources/device/).
-      // That API resource has "device_type" as a member of "device."
-
-      // But with the SDK, instead of `device.device_type` I get:
-
-      // is_of__device_type: { __deferred: { uri:/ '/resin/device_type(@id)?@id=77' }, __id: 77 },
-
-      // Second, I'm not sure what to do with __deferred here.  It looks
-      // like something I should resolve, but how?  Am I meant to use
-      // the URI to construct a bare API call?
-
-      // For now, I'm cheating and just setting the device type manually
-      // to match my particular device.
-      return listSupervisorReleases("raspberrypi4-64")
+    .then(deviceType => {
+      return listSupervisorReleases(deviceType);
     })
     .then(release => {
       console.log("[DEBUG] Release: ", release);
