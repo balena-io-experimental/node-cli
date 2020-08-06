@@ -125,6 +125,7 @@ async function getDeviceTypeFromUUID(deviceUUID) {
 
 async function upgradeSupervisor(uuid, supervisor) {
   await initializeBalenaAuth();
+  console.log('[DEBUG] Preparing to get device type from uuid')
   getDeviceTypeFromUUID(uuid)
     .then(deviceType => {
       console.log("[DEBUG] Device from API: ", deviceType);
