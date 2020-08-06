@@ -112,8 +112,8 @@ async function getDeviceTypeFromUUID(deviceUUID) {
 
   return await balena.models.device.get(deviceUUID, {
     $expand: {
-      is_for__device_type: {
-	$select: ['slug']
+      is_of__device_type: {
+  	$select: ['slug']
       }
     }
   })
