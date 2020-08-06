@@ -10,20 +10,31 @@ const balena = getSdk({
   apiUrl: balenaUrl
 });
 
+// See https://github.com/yargs/yargs/issues/745#issuecomment-269879831
 const options = yargs
       .usage('Usage: $0 <command> <options>')
-      .command({
-	command: 'upgrade [uuid]',
-	desc: 'Upgrade supervisor on a device',
-	handler: (argv) => {
-	  console.log(`Hello world, from device ${argv.uuid}!`)
-	}
+      .command('upgrade', 'Upgrade supervisor on device to specified version', yargs => {
+	yargs
+	  .option('uuid', {
+	    desc: 'uuid for the device',
+	    demand: 'Please specify a uuid for the device'
+	  })
+	  .option('supervisor', {
+	    desc: 'supervisor version to upgrade to',
+	    demand: 'Please specify a supervisor version'
+	  })
+	  .demandOption(['uuid', 'supervisor'], 'Please provide both uuid and version arguments')
+      }, argv => {
+	argv._handled = true;
+	console.log(`Preparing to upgrade device ${argv.uuid} to supervisor version ${argv.supervisor}`);
       })
       // .command('list-supervisor-versions', 'List supervisor versions available')
       // .option("u", {alias: "uuid",
       // 		    describe: "UUID of device",
       // 		    type: "string",
       // 		    demandOption: true})
+      .demandCommand(1, 'Please specify a command to run')
+      .help()
       .argv;
 
 var personalToken = fs.readFileSync(balenaToken, 'utf8');
