@@ -37,20 +37,23 @@ const options = yargs
       .help()
       .argv;
 
-var personalToken = fs.readFileSync(balenaToken, 'utf8');
 
-balena.auth.loginWithToken(personalToken, function(error) {
-  if (error) throw error;
-})
+async function initializeBalenaAuth() {
+  var personalToken = fs.readFileSync(balenaToken, 'utf8');
 
-balena.auth.whoami()
-  .then(username => {
-    if(username) {
-      console.log("[DEBUG] I am", username);
-    } else {
-      console.log("[DEBUG] I am nobody? I guess?")
-    }
-  });
+  balena.auth.loginWithToken(personalToken, function(error) {
+    if (error) throw error;
+  })
+
+  balena.auth.whoami()
+    .then(username => {
+      if(username) {
+	console.log("[DEBUG] I am", username);
+      } else {
+	console.log("[DEBUG] I am nobody? I guess?")
+      }
+    });
+}
 
 async function listSupervisorReleases(deviceType) {
   // Doubled slashes *will not work*.  IOW, it's `${balenaUrl}v5/...`,
