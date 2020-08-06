@@ -46,15 +46,14 @@ const options = yargs
       .help()
       .argv;
 
-
 async function initializeBalenaAuth() {
   var personalToken = fs.readFileSync(balenaToken, 'utf8');
 
-  balena.auth.loginWithToken(personalToken, function(error) {
+  await balena.auth.loginWithToken(personalToken, function(error) {
     if (error) throw error;
   })
 
-  balena.auth.whoami()
+  await balena.auth.whoami()
     .then(username => {
       if(username) {
 	console.log("[DEBUG] I am", username);
@@ -108,16 +107,24 @@ async function setSupervisorRelease(id, deviceUUID) {
     })
 }
 
-async function getDeviceByUUID(deviceUUID) {
+async function getDeviceTypeFromUUID(deviceUUID) {
   console.log(`[DEBUG] Searching for device ${deviceUUID}`)
-  return await balena.models.device.get(deviceUUID)
+
+  return await balena.models.device.get(deviceUUID, {
+    $expand: {
+      is_for__device_type: {
+	$select: ['slug']
+      }
+    }
+  })
     .then(device => {
       return device;
     });
 }
 
 async function upgradeSupervisor(uuid, supervisor) {
-  getDeviceByUUID(uuid)
+  await initializeBalenaAuth();
+  getDeviceTypeFromUUID(uuid)
     .then(device => {
       console.log("[DEBUG] Device from API: ", device);
       return device;
