@@ -72,23 +72,14 @@ async function listSupervisorReleases(deviceType) {
 
 async function setSupervisorRelease(id, deviceUUID) {
   console.log("[DEBUG] Setting device", deviceUUID, "to be managed by supervisor ID", id);
-  // FIXME:  I don't understand what I'm doing wrong here.  The output I get is:
+  // Originally, I had the SDK call wrong and was getting this error:
 
-  // [DEBUG] Setting device e492d594537faf2432872295cc3190ef to be managed by supervisor ID 7334
-  // (node:33536) UnhandledPromiseRejectionWarning: TypeError: Cannot read property 'device' of undefined
-  //     at setSupervisorRelease (/home/hugh/dev/github.com/balena-io-playground/node-cli/upgrade-supervisor/bin/index.js:52:22)
-  //     at /home/hugh/dev/github.com/balena-io-playground/node-cli/upgrade-supervisor/bin/index.js:91:5
-  //     at processTicksAndRejections (internal/process/task_queues.js:97:5)
   // (node:33536) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). To terminate the node process on unhandled promise rejection, use the CLI flag `--unhandled-rejections=strict` (see https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). (rejection id: 1)
   // (node:33536) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
 
-  // I don't understand why:
+  // xginn8 has pointed out that I'm mixing up my try/catch methods,
+  // so I need to get that sorted out.
 
-  // - the .catch block is not catching the error;
-
-  // - why the device is undefined here.
-
-  // This happens whether I use an API token or a Session token.
   await balena.models.device.setSupervisorRelease(deviceUUID, id)
     .then(result => {
       console.log("Worked! ", result);
