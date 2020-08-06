@@ -107,9 +107,16 @@ async function setSupervisorRelease(id, deviceUUID) {
     })
 }
 
-async function getDeviceByUUID(deviceUUID) {
+async function getDeviceTypeFromUUID(deviceUUID) {
   console.log(`[DEBUG] Searching for device ${deviceUUID}`)
-  return await balena.models.device.get(deviceUUID)
+
+  return await balena.models.device.get(deviceUUID, {
+    $expand: {
+      is_for__device_type: {
+	$select: ['slug']
+      }
+    }
+  })
     .then(device => {
       return device;
     });
@@ -117,6 +124,7 @@ async function getDeviceByUUID(deviceUUID) {
 
 async function upgradeSupervisor(uuid, supervisor) {
   await initializeBalenaAuth();
+  getDeviceTypeFromUUID(uuid)
     .then(device => {
       console.log("[DEBUG] Device from API: ", device);
       return device;
