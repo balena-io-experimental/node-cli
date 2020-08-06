@@ -29,11 +29,19 @@ const options = yargs
 	console.log(`Preparing to upgrade device ${argv.uuid} to supervisor version ${argv.supervisor}`);
 	upgradeSupervisor(argv.uuid, argv.supervisor);
       })
-      // .command('list-supervisor-versions', 'List supervisor versions available')
-      // .option("u", {alias: "uuid",
-      // 		    describe: "UUID of device",
-      // 		    type: "string",
-      // 		    demandOption: true})
+      .command('list-supervisor-versions', 'List supervisor versions available', yargs => {
+	yargs
+	  .option('devicetype', {
+	    desc: 'device type (eg: raspberrypi4-64)'
+	  })
+	  .option('uuid', {
+	    desc: 'Search for versions available for specified device'
+	  })
+      }, argv => {
+	argv._handled = true;
+	console.log('Preparing to list supervisor versions');
+	listSupervisorReleases(argv.devicetype, argv.uuid);
+      })
       .demandCommand(1, 'Please specify a command to run')
       .help()
       .argv;
@@ -56,18 +64,29 @@ async function initializeBalenaAuth() {
     });
 }
 
-async function listSupervisorReleases(deviceType) {
+async function listSupervisorReleases(deviceType, uuid) {
   // Doubled slashes *will not work*.  IOW, it's `${balenaUrl}v5/...`,
   // not `${balenaUrl}/v5/...`
-  reqUrl = `${balenaUrl}v5/supervisor_release?$filter=device_type%20eq%20'${deviceType}'`;
-  console.log("[DEBUG] Looking for ", reqUrl);
-  return await balena.request.send({url: reqUrl})
-    .then(data => {
-      // FIXME: implicit assumption that highest id === highest semantic version
-      var results = data.body.d;
-      var highest = results.sort((a, b) => a.id - b.id)[results.length - 1]
-      return highest;
-    });
+  if (typeof deviceType === 'string') {
+    reqUrl = `${balenaUrl}v5/supervisor_release?$filter=device_type%20eq%20'${deviceType}'`;
+    console.log("[DEBUG] Looking for ", reqUrl);
+    return await balena.request.send({url: reqUrl})
+      .then(data => {
+	// FIXME: implicit assumption that highest id === highest semantic version
+	var results = data.body.d;
+	var highest = results.sort((a, b) => a.id - b.id)[results.length - 1]
+	return highest;
+      });
+  } else if (typeof deviceType === 'string') {
+    getDeviceByUUID(uuid)
+      .then(device => {
+	console.log("[DEBUG] Device from API: ", device);
+	return device;
+      })
+      .then(device )
+  } else {
+    console.log("Weird, don't know what those args are: ", deviceType, uuid )
+  }
 }
 
 async function setSupervisorRelease(id, deviceUUID) {
