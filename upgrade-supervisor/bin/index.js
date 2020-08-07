@@ -41,7 +41,7 @@ const options = yargs
 	argv._handled = true;
 	console.log('Preparing to list supervisor versions');
 	listSupervisorReleases(argv.devicetype, argv.uuid)
-	  .then(release => { console.log(release)});
+	  .then(releases => { console.log(releases)});
       })
       .demandCommand(1, 'Please specify a command to run')
       .help()
@@ -80,8 +80,8 @@ async function listSupervisorReleases(deviceType, uuid) {
     .then(data => {
       // FIXME: implicit assumption that highest id === highest semantic version
       var results = data.body.d;
-      var highest = results.sort((a, b) => a.id - b.id)[results.length - 1]
-      return highest;
+      var sorted = results.sort((a, b) => a.id - b.id)
+      return sorted;
     });
 }
 
@@ -131,8 +131,10 @@ async function upgradeSupervisor(uuid, supervisor) {
     .then(deviceType => {
       return listSupervisorReleases(deviceType);
     })
-    .then(release => {
-      console.log('[DEBUG] Release:', release);
-      setSupervisorRelease(release.supervisor_version, uuid);
+    .then(releases => {
+      // FIXME: implicit assumption that last entry == highest id == highest semantic version
+      latest = releases[releases.length - 1];
+      console.log('[DEBUG] Target release:', latest);
+      setSupervisorRelease(latest.supervisor_version, uuid);
     })
 }
