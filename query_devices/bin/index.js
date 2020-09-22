@@ -145,14 +145,24 @@ async function listDevicesMatchingOS() {
   return devicesWithOwner;
 }
 
+function threeMonthsAgo () {
+  let d = new Date();
+  d.setMonth(d.getMonth() - 3);
+  return d;
+}
+
 listDevicesMatchingOS()
   .then(devices => {
-    console.log(devices);
     console.log("Total devices:", devices.length);
-    const paidDevices = devices.filter(
+    threshold = threeMonthsAgo();
+    const recentDevices = devices.filter(
+      device => Date.parse(device.last_connectivity_event) > threshold,
+    );
+    console.log("Recent devices: ", recentDevices.length);
+    const paidDevices = recentDevices.filter(
       device => device.belongs_to__application[0].organization.length > 0,
     );
-    console.log("Total paid devices:", paidDevices.length);
+    console.log("Total recent paid devices:", paidDevices.length);
   })
   .catch(err => {
     console.log("Noo! an error!");
