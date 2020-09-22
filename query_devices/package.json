@@ -1,0 +1,16 @@
+{
+  "name": "query_devices",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bin/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test set\" && exit 1"
+  },
+  "author": "Hugh Brown <hugh@balena.io>",
+  "license": "MIT",
+  "dependencies": {
+    "balena-sdk": "^15.12.0",
+    "semver": "^7.3.2",
+    "yargs": "^16.0.3"
+  }
+}
