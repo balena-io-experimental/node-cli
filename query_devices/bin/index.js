@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+// Get a list of devices that are running balenaOS < 2.14.  Further
+// filter by devices that have connected recently (3 months ago, going
+// by `last_connectivity_event`), and by paid/free customers.
+
 const fs = require('fs');
 const semver = require('semver');
 
@@ -42,6 +46,7 @@ async function listDevicesMatchingOS() {
       // last N days.  Not sure if last_connectivity_event captures that.
       $select: ['os_version', 'uuid', 'last_connectivity_event'],
       $filter: {
+	// FIXME: This is not great.  If there's a way to do this better, I'm all ears.
 	$or: [
 	  {
             os_version: {
