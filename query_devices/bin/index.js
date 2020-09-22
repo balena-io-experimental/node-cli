@@ -4,6 +4,8 @@
 // filter by devices that have connected recently (3 months ago, going
 // by `last_connectivity_event`), and by paid/free customers.
 
+'use strict';
+
 const fs = require('fs');
 const semver = require('semver');
 
