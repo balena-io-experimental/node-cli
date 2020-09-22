@@ -34,7 +34,7 @@ default:
 
 const balena = require('balena-sdk').getSdk({apiUrl: BALENA_URL});
 
-async function getAffectedDevices() {
+async function listDevicesMatchingOS() {
   const devicesWithOwner = await balena.pine.get({
     resource: 'device',
     options: {
@@ -42,22 +42,114 @@ async function getAffectedDevices() {
       // last N days.  Not sure if last_connectivity_event captures that.
       $select: ['os_version', 'uuid', 'last_connectivity_event'],
       $filter: {
-        // is_online: true,
-        $or: [
-          {
+	$or: [
+	  {
             os_version: {
-              $startswith: '2.13',
+              $startswith: 'Resin OS 1.0.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.0.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.1.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.2.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.3.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.4.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.5.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.6.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.7.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.8.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.9.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.10.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.11.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.12.',
+            },
+	  },
+	  {
+            os_version: {
+              $startswith: 'Resin OS 2.13.',
+            },
+	  },
+	]
+      },
+      $expand: {
+        belongs_to__application: {
+          $select: 'id',
+          $expand: {
+            organization: {
+              $filter: {
+                billing_account_code: {
+                  $ne: null,
+                },
+              },
             },
           },
-        ],
-      },
+        },
+      },      
     },
   });
 
   return devicesWithOwner;
 }
 
-listBadSupervisorVersions().
-  then(data => {
-    console.dir(data, {'maxArrayLength': null});
-  });
+listDevicesMatchingOS()
+  .then(devices => {
+    console.log(devices);
+    console.log("Total devices:", devices.length);
+    const paidDevices = devices.filter(
+      device => device.belongs_to__application[0].organization.length > 0,
+    );
+    console.log("Total paid devices:", paidDevices.length);
+  })
+  .catch(err => {
+    console.log("Noo! an error!");
+    throw(err);
+  })
