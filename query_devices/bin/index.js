@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // Get a list of devices that are running balenaOS < 2.14.  Further
-// filter by devices that have connected recently (3 months ago, going
-// by `last_connectivity_event`), and by paid/free customers.  The list
+// filter by devices that have connected recently (going by
+// `last_connectivity_event`), and by paid/free customers.  The list
 // of *all* devices -- not just recent or paid ones! -- will be written out.
 
 'use strict';
@@ -11,6 +11,7 @@ const fs = require('fs');
 const semver = require('semver');
 
 const defaultOutputFile = 'devices_lower_than_2.14.json';
+const defaultMonthsThreshold = 3;
 
 var argv = require('yargs')
     .options({
@@ -19,6 +20,10 @@ var argv = require('yargs')
 	describe: 'Environment (staging / prod / local)',
 	demandOption: true,
 	default: 'staging'
+      },
+      'threshold_months': {
+	describe: 'How many months ago counts as "recently connected"',
+	default: defaultMonthsThreshold,
       },
       'output': {
 	decribe: 'Output JSON file',
@@ -154,25 +159,25 @@ async function listDevicesMatchingOS() {
   return devicesWithOwner;
 }
 
-function threeMonthsAgo () {
+function dateSomeMonthsAgo (numMonths) {
   let d = new Date();
-  d.setMonth(d.getMonth() - 3);
+  d.setMonth(d.getMonth() - numMonths);
   return d;
 }
 
 listDevicesMatchingOS()
   .then(devices => {
     console.log("Total devices:", devices.length);
-    threshold = threeMonthsAgo();
+    let threshold = dateSomeMonthsAgo(argv.threshold_months);
     const recentDevices = devices.filter(
       device => Date.parse(device.last_connectivity_event) > threshold,
     );
-    console.log("Recent devices: ", recentDevices.length);
-    const paidDevices = recentDevices.filter(
+    console.log(`Devices connected more recently than ${argv.threshold_months} months ago: ${recentDevices.length}`);
+    const recentPaidDevices = recentDevices.filter(
       device => device.belongs_to__application[0].organization.length > 0,
     );
-    console.log("Total recent paid devices:", paidDevices.length);
-    console.log(`Writing out ${argv.output}...`);
+    console.log(`Total paid devices, connected more recently than ${argv.threshold_months} months ago: ${recentPaidDevices.length}`);
+    console.log(`Writing out **ALL** devices (whether recent or not, paid or not) to ${argv.output}...`);
     fs.writeFileSync(argv.output, JSON.stringify(devices));
   })
   .catch(err => {
