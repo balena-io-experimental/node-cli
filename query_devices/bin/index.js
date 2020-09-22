@@ -2,12 +2,15 @@
 
 // Get a list of devices that are running balenaOS < 2.14.  Further
 // filter by devices that have connected recently (3 months ago, going
-// by `last_connectivity_event`), and by paid/free customers.
+// by `last_connectivity_event`), and by paid/free customers.  The list
+// of *all* devices -- not just recent or paid ones! -- will be written out.
 
 'use strict';
 
 const fs = require('fs');
 const semver = require('semver');
+
+const defaultOutputFile = 'devices_lower_than_2.14.json';
 
 var argv = require('yargs')
     .options({
@@ -17,6 +20,10 @@ var argv = require('yargs')
 	demandOption: true,
 	default: 'staging'
       },
+      'output': {
+	decribe: 'Output JSON file',
+	default: defaultOutputFile,
+      }
     })
     .help()
     .argv;
@@ -165,6 +172,8 @@ listDevicesMatchingOS()
       device => device.belongs_to__application[0].organization.length > 0,
     );
     console.log("Total recent paid devices:", paidDevices.length);
+    console.log(`Writing out ${argv.output}...`);
+    fs.writeFileSync(argv.output, JSON.stringify(devices));
   })
   .catch(err => {
     console.log("Noo! an error!");
